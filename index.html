@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Outfit Randomiser</title>
+    <!-- Tailwind CSS CDN for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom font for a clean, modern look */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.5s, color 0.5s;
+        }
+        /* Custom styles for radio buttons and dropdown */
+        input[type="radio"]:checked + label {
+            background-color: #38a169;
+            color: #1a202c;
+            border-color: #38a169;
+        }
+        select {
+            background-color: #1f2937;
+            border: 1px solid #4b5563;
+            color: #d1d5db;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-gray-200 flex flex-col items-center justify-center min-h-screen p-4">
+
+    <header class="text-center mb-10">
+        <h1 class="text-4xl font-bold text-teal-400 mb-2">Campus Outfit Randomiser</h1>
+        <p class="text-xl font-light text-slate-400">Change the campus, change the world.</p>
+    </header>
+
+    <main class="w-full max-w-lg space-y-8">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl shadow-xl p-8 text-center transition-all duration-500 hover:shadow-2xl hover:border-teal-500">
+
+            <!-- Gender Selection -->
+            <div class="flex justify-center items-center gap-4 mb-6">
+                <button id="maleBtn" onclick="setGender('male')" class="px-6 py-2 rounded-full font-semibold transition-all duration-300 text-slate-900 bg-teal-500 hover:bg-teal-400 focus:outline-none">Male</button>
+                <button id="femaleBtn" onclick="setGender('female')" class="px-6 py-2 rounded-full font-semibold transition-all duration-300 bg-slate-700 text-gray-300 hover:bg-slate-600 focus:outline-none">Female</button>
+            </div>
+            
+            <!-- Avatar Display -->
+            <div id="avatar-container" class="flex justify-center h-64 mb-8">
+                <!-- Male Avatar SVG -->
+                <svg id="male-avatar" class="h-full" viewBox="0 0 100 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Head -->
+                    <circle cx="50" cy="25" r="20" fill="#E8BD93"/>
+                    <!-- Shirt -->
+                    <path id="male-shirt" d="M30 45C30 45 20 60 25 75C30 90 70 90 75 75C80 60 70 45 70 45H50V90H30V45Z" fill="#b0b0b0"/>
+                    <!-- Pants -->
+                    <path id="male-pants" d="M30 90H25L30 150H45L50 90H30Z" fill="#b0b0b0"/>
+                    <path id="male-pants-right" d="M70 90H75L70 150H55L50 90H70Z" fill="#b0b0b0"/>
+                    <!-- Shoes -->
+                    <rect id="male-shoes-left" x="25" y="140" width="15" height="10" fill="#b0b0b0"/>
+                    <rect id="male-shoes-right" x="60" y="140" width="15" height="10" fill="#b0b0b0"/>
+                </svg>
+                
+                <!-- Female Avatar SVG -->
+                <svg id="female-avatar" class="h-full hidden" viewBox="0 0 100 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Head -->
+                    <circle cx="50" cy="25" r="20" fill="#E8BD93"/>
+                    <!-- Shirt -->
+                    <path id="female-shirt" d="M30 45C30 45 25 60 30 75L70 75C75 60 70 45 70 45H50V75H30V45Z" fill="#b0b0b0"/>
+                    <!-- Skirt/Pants (Skirts for female, but we'll call it bottom to be generic) -->
+                    <path id="female-bottom" d="M30 75L25 105H75L70 75H30Z" fill="#b0b0b0"/>
+                    <!-- Legs -->
+                    <path d="M40 105L45 150H55L50 105H40Z" fill="#E8BD93"/>
+                    <path d="M60 105L55 150H45L50 105H60Z" fill="#E8BD93"/>
+                    <!-- Shoes -->
+                    <rect id="female-shoes-left" x="40" y="140" width="10" height="10" fill="#b0b0b0"/>
+                    <rect id="female-shoes-right" x="50" y="140" width="10" height="10" fill="#b0b0b0"/>
+                </svg>
+            </div>
+            
+            <!-- Randomisation Mode Dropdown -->
+            <div class="mb-6">
+                <label for="randomize-mode" class="block text-sm font-medium text-gray-400 mb-2">Randomisation Mode</label>
+                <select id="randomize-mode" class="w-full rounded-lg px-4 py-2 border">
+                    <option value="top-only">Top only</option>
+                    <option value="top-bottom">Top and bottom</option>
+                    <option value="full-outfit" selected>Full outfit</option>
+                </select>
+            </div>
+
+            <!-- Randomise button -->
+            <button onclick="generateOutfit()" class="w-full bg-teal-500 text-slate-900 font-bold py-3 px-6 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105 hover:bg-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50">
+                Randomise Outfit
+            </button>
+        </div>
+
+        <!-- Bible Verse Section -->
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl shadow-lg p-6 text-center">
+            <h3 class="text-xl font-semibold mb-2 text-yellow-400">Bible Verse of the Day</h3>
+            <p id="bible-verse" class="text-gray-300 italic"></p>
+        </div>
+    </main>
+
+    <script>
+        // Array of colors for the outfit pieces
+        const colours = [
+            "#e0e0e0", "#ffffff", "#000000", "#ff6b6b", "#4ecdc4", "#4a90e2",
+            "#f7b731", "#9d50bb", "#ff8a5c", "#78c0e0", "#8e44ad", "#2ecc71",
+            "#F97316", "#FDE047", "#14B8A6", "#6366F1", "#A855F7"
+        ];
+        
+        // Array of Bible verses focused on evangelism
+        const bibleVerses = [
+            "Therefore go and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit. - Matthew 28:19",
+            "But you will receive power when the Holy Spirit has come upon you, and you will be my witnesses in Jerusalem and in all Judea and Samaria, and to the end of the earth. - Acts 1:8",
+            "How then will they call on him in whom they have not believed? And how are they to believe in him of whom they have never heard? And how are they to hear without someone preaching? - Romans 10:14",
+            "For I am not ashamed of the gospel, for it is the power of God for salvation to everyone who believes. - Romans 1:16",
+            "And he said to them, “Go into all the world and proclaim the gospel to the whole creation.” - Mark 16:15"
+        ];
+
+        let currentGender = 'male';
+
+        /**
+         * Sets the gender of the avatar and updates the UI.
+         * @param {string} gender The gender to set ('male' or 'female').
+         */
+        function setGender(gender) {
+            currentGender = gender;
+            const maleAvatar = document.getElementById('male-avatar');
+            const femaleAvatar = document.getElementById('female-avatar');
+            const maleBtn = document.getElementById('maleBtn');
+            const femaleBtn = document.getElementById('femaleBtn');
+
+            if (gender === 'male') {
+                maleAvatar.classList.remove('hidden');
+                femaleAvatar.classList.add('hidden');
+                maleBtn.classList.add('bg-teal-500', 'text-slate-900');
+                maleBtn.classList.remove('bg-slate-700', 'text-gray-300');
+                femaleBtn.classList.add('bg-slate-700', 'text-gray-300');
+                femaleBtn.classList.remove('bg-teal-500', 'text-slate-900');
+            } else {
+                maleAvatar.classList.add('hidden');
+                femaleAvatar.classList.remove('hidden');
+                femaleBtn.classList.add('bg-teal-500', 'text-slate-900');
+                femaleBtn.classList.remove('bg-slate-700', 'text-gray-300');
+                maleBtn.classList.add('bg-slate-700', 'text-gray-300');
+                maleBtn.classList.remove('bg-teal-500', 'text-slate-900');
+            }
+            generateOutfit(); // Generate a new outfit when gender changes
+        }
+
+        /**
+         * Selects a random color from the 'colours' array.
+         * @returns {string} A random hex color code.
+         */
+        function randomColour() {
+            return colours[Math.floor(Math.random() * colours.length)];
+        }
+
+        /**
+         * Generates a new random outfit based on the selected mode and gender.
+         */
+        function generateOutfit() {
+            const mode = document.getElementById('randomize-mode').value;
+            let shirtElement, bottomElement, shoesElements;
+
+            if (currentGender === 'male') {
+                shirtElement = document.querySelector('#male-shirt');
+                bottomElement = document.querySelector('#male-pants');
+                const pantsRightElement = document.querySelector('#male-pants-right');
+                shoesElements = [
+                    document.querySelector('#male-shoes-left'),
+                    document.querySelector('#male-shoes-right')
+                ];
+                
+                // Reset colors to default
+                pantsRightElement.style.fill = "#b0b0b0";
+                shirtElement.style.fill = "#b0b0b0";
+                bottomElement.style.fill = "#b0b0b0";
+                shoesElements.forEach(el => el.style.fill = "#b0b0b0");
+                
+                if (mode === 'top-only' || mode === 'top-bottom' || mode === 'full-outfit') {
+                    shirtElement.style.fill = randomColour();
+                }
+                if (mode === 'top-bottom' || mode === 'full-outfit') {
+                    const pantsColor = randomColour();
+                    bottomElement.style.fill = pantsColor;
+                    pantsRightElement.style.fill = pantsColor; // Apply the same color to both pants paths
+                }
+                if (mode === 'full-outfit') {
+                    const shoesColor = randomColour();
+                    shoesElements.forEach(el => el.style.fill = shoesColor);
+                }
+            } else { // Female
+                shirtElement = document.querySelector('#female-shirt');
+                bottomElement = document.querySelector('#female-bottom');
+                shoesElements = [
+                    document.querySelector('#female-shoes-left'),
+                    document.querySelector('#female-shoes-right')
+                ];
+                
+                // Reset colors to default
+                shirtElement.style.fill = "#b0b0b0";
+                bottomElement.style.fill = "#b0b0b0";
+                shoesElements.forEach(el => el.style.fill = "#b0b0b0");
+                
+                if (mode === 'top-only' || mode === 'top-bottom' || mode === 'full-outfit') {
+                    shirtElement.style.fill = randomColour();
+                }
+                if (mode === 'top-bottom' || mode === 'full-outfit') {
+                    bottomElement.style.fill = randomColour();
+                }
+                if (mode === 'full-outfit') {
+                    const shoesColor = randomColour();
+                    shoesElements.forEach(el => el.style.fill = shoesColor);
+                }
+            }
+
+            // Also generate a new Bible verse with each outfit
+            generateBibleVerse();
+        }
+
+        /**
+         * Selects a random Bible verse and displays it.
+         */
+        function generateBibleVerse() {
+            const verseElement = document.getElementById('bible-verse');
+            const randomVerse = bibleVerses[Math.floor(Math.random() * bibleVerses.length)];
+            verseElement.textContent = randomVerse;
+        }
+
+        // Initial setup when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            setGender('male'); // Start with male avatar
+            generateOutfit();
+        });
+    </script>
+</body>
+</html>
